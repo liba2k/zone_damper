@@ -1,0 +1,166 @@
+<html>
+    <link rel="shortcut icon" type="image/png" href="damper.png" />
+    <style>
+    .knob-control-wrapper {
+        aspect-ratio: 1;
+        display: inline-block;
+        position: relative;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        max-width: 1000;
+    }
+
+    .knob-value {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        color: white;
+        z-index: 2;
+        font-size: 4em;
+        text-align: center;
+        width: 90%;
+        font-weight: bold;
+        color: #fff;
+        padding-left: 10px;
+    }
+    .knob-value::after {
+        content: "\00b0";
+        margin-left: 2px;
+        margin-top: -4px;
+    }
+
+    .knob-control {
+        -webkit-appearance: none;
+        width: 100%;
+        outline: none;
+        aspect-ratio: 1;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(-135deg, #f0f0f0 50%, black 50%, black 100%);
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: rotate(-135deg);
+        transform-origin: center center;
+    }
+
+    .knob-control::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 40%;
+        height: 40%;
+        border-radius: 50%;
+        background-color: #555;
+        cursor: pointer;
+        position: absolute;
+        top: 30%;
+        left: 30%;
+    }
+
+    .knob-control::-moz-range-thumb {
+        width: 40%;
+        height: 40%;
+        border-radius: 50%;
+        background-color: #555;
+        cursor: pointer;
+        position: absolute;
+        top: 30%;
+        left: 30%;
+    }
+
+    .switch-toggle {
+        float: left;
+        background: #242729;
+    }
+
+    .switch-toggle input {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .switch-toggle input + label {
+        padding: 7px;
+        float:left;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .switch-toggle input:checked + label {
+        background: green;
+    }
+
+    </style>
+    <body>
+        <div style="width: 100%" class="knob-control-wrapper">
+            <input type="range" min="0" max="90" value="90" class="knob-control" />
+            <div class="knob-value"></div>
+        </div>
+        <div class="switch-toggle switch-3 switch-candy">
+
+            <input id="a" name="state-d" type="radio" checked="" onchange="handleChange();" />
+            <label for="a" onclick="">A</label>
+
+            <input id="off" name="state-d" type="radio" checked="checked" onchange="handleChange();" />
+            <label for="off" class="disabled" onclick="">Off</label>
+
+            <input id="b" name="state-d" type="radio" onchange="handleChange();" />
+            <label for="b" onclick="">B</label>
+
+        </div>
+        <script>
+            const knobControl = document.querySelector('.knob-control');
+            const knobValue = document.querySelector('.knob-value');
+            let updated = 0;
+            function updateValue(set_updated = false) {
+                const value = 90-parseInt(knobControl.value);
+                last_value = value;
+                knobValue.textContent = value;
+                const gradientValue = (value / 90) * 100;
+                knobControl.style.background = `linear-gradient(-135deg, #f0f0f0 ${gradientValue}%, black ${gradientValue}%, black 100%)`;
+                if (set_updated) updated = 2;
+            }
+            updateValue();
+            knobControl.addEventListener('input', function() { updateValue(true); });
+
+            function sendMessage(msg) {
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", msg);
+                xhr.send();
+            }
+            function handleAngle() {
+                setTimeout(handleAngle, 3000);
+                if(updated > 0) {
+                    if (--updated == 0)
+                        sendMessage("set_angle?val=" + (90-parseInt(knobControl.value)).toString());
+                } else {
+                    const xhr = new XMLHttpRequest(); 
+                    xhr.onreadystatechange = () => {
+                        if (xhr.readyState === 4) {
+                            let val = xhr.response;
+                            console.log(val);
+                            knobControl.value = 90 - val; 
+                            updateValue();
+                        }
+                    }
+                    xhr.open('GET', "get_angle", true);
+                    xhr.send();
+                }
+            }
+            handleAngle();
+
+            function handleChange() {
+                if (document.getElementById('a').checked) {
+                    sendMessage("set_gpio?val=A"); 
+                } else if (document.getElementById('b').checked) {
+                   sendMessage("set_gpio?val=B"); 
+                } else { 
+                   sendMessage("set_gpio?val=Off"); 
+                }
+            }
+        </script>
+    </body>
+</html>
