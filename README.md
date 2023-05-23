@@ -6,7 +6,7 @@ A cheap 24V DC motor from AliExpress will actuate a manual zone damper.
 Each direction (Open & Close) is controlled by a NPN/PNP transistor pair since the motor uses a common ground configuration.
 
 <img src="Motorized-Zone-Dampers.webp" width=50% />
-![switch.png](switch.png)
+<img src="switch.png"/>
 The R3 represents the motor.
 
 ### Installation 
